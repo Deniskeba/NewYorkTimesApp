@@ -11,42 +11,38 @@ import Alamofire
 import CoreData
 
 class FavoriteVC: UIViewController, NSFetchedResultsControllerDelegate {
+    var result:[StoredCells] = []
     
-    private let persistentContainer = NSPersistentContainer(name: "StoredCells")
+    //MARK: request to core data
     
-    lazy var fetchedResultsController: NSFetchedResultsController<StoredCells> = {
-        // Create Fetch Request
-        let fetchRequest: NSFetchRequest<StoredCells> = StoredCells.fetchRequest()
-
-        // Configure Fetch Request
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: true)]
-
-        // Create Fetched Results Controller
-        let fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: CoreDataService.shared.context, sectionNameKeyPath: nil, cacheName: nil)
-
-        // Configure Fetched Results Controller
-        fetchedResultsController.delegate = self
-
-        return fetchedResultsController
-    }()
+    var context = CoreDataService.shared.context
+    func fetch() {
+        let request = NSFetchRequest<StoredCells>(entityName: "StoredCells")
+        
+        do{
+          result =  try context.fetch(request)
+        }
+        catch{
+            print(error)
+        }
+    }
+   
    
 //MARK: Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        
         self.SetupUI()
-        self.tableView.delegate = self
-        self.tableView.dataSource = self
+        tableView.dataSource = self
+        tableView.delegate = self
         
-        persistentContainer.loadPersistentStores { (persistentStoreDescription, error) in
-            if let error = error {
-                print("Unable to Load Persistent Store")
-                print("\(error), \(error.localizedDescription)")
-
         
-            }
-        }
-        
+    }
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(true)
+        fetch()
+        tableView.reloadData()
     }
 
 //MARK: UI Components
@@ -55,6 +51,8 @@ class FavoriteVC: UIViewController, NSFetchedResultsControllerDelegate {
         tableView.register(CustomTableViewCell.self, forCellReuseIdentifier: "cell")
         return tableView
     }()
+    
+    
 //MARK: Setup UI
     private func SetupUI() {
         self.view.addSubview(tableView)
@@ -65,7 +63,21 @@ class FavoriteVC: UIViewController, NSFetchedResultsControllerDelegate {
             make.bottom.equalToSuperview()
         }
     }
-    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let DetailsVC = DetailsVC()
+        let rslt = result[indexPath.row]
+        DetailsVC.titleLabel.text = rslt.title
+        DetailsVC.authorLabel.text = rslt.byline
+        if rslt.image!.isEmpty == false {
+            DetailsVC.imageView.downloaded(from: rslt.image!)
+        } else{
+            DetailsVC.imageView.image  = UIImage(named: "prapor")
+        }
+        DetailsVC.dateLabel.text =  rslt.publishedDate
+        
+        present(DetailsVC, animated: true)
+        
+    }
 
 
 }
@@ -73,17 +85,22 @@ class FavoriteVC: UIViewController, NSFetchedResultsControllerDelegate {
 extension FavoriteVC: UITableViewDelegate {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell",  for: indexPath) as! CustomTableViewCell
-        let saved = fetchedResultsController.object(at: indexPath)
-        
-        cell.titleLabel.text = saved.byline
+        let rslt = result[indexPath.row]
+        cell.titleLabel.text = rslt.title
+        cell.sectionLabel.text = rslt.section
+        cell.captionLabel.text = rslt.nytdsection?.uppercased()
+        if rslt.image?.isEmpty == false {
+            cell.myImageView.downloaded(from: rslt.image ?? "non")
+        } else {
+            cell.myImageView.image = UIImage(named: "prapor")
+        }
         return cell
     }
 }
 //MARK: TableView DataSource
 extension FavoriteVC: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        guard let quotes = fetchedResultsController.fetchedObjects else { return 0 }
-            return quotes.count
+        return result.count
     }
 }
 

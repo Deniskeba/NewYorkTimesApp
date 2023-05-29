@@ -87,6 +87,13 @@ extension MostSharedVC: UITableViewDelegate {
         } else {
             cell.myImageView.image = UIImage(named: "prapor")
         }
+        cell.didTapFavoriteClosure = { [weak self, indexPath] in
+        guard let self = self else { return }
+            self.AppNews[indexPath.row].isFavorite.toggle()
+            
+            CoreDataService.shared.createCard(self.AppNews[indexPath.row].new)
+            
+        }
                 
         return cell
     }

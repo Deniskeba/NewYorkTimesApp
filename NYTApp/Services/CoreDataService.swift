@@ -74,7 +74,11 @@ final class CoreDataService {
         
 
         StoredCells.title = new.title
-        StoredCells.image = new.media![0].mediaMetadata![1].url
+        if new.media?.isEmpty == false {
+            StoredCells.image = new.media![0].mediaMetadata![1].url
+        } else {
+            StoredCells.image = ""
+        }
         StoredCells.byline = new.byline
         StoredCells.nytdsection = new.nytdsection
         StoredCells.publishedDate = new.publishedDate

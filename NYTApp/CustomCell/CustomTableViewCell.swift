@@ -17,6 +17,7 @@ class CustomTableViewCell: UITableViewCell {
 
     
     var didTapFavoriteClosure: (() -> ())?
+    var appNews: [AppNew] = []
     
     //MARK: - Components of Cell
     let heartButton: UIButton = {

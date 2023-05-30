@@ -78,7 +78,20 @@ class FavoriteVC: UIViewController, NSFetchedResultsControllerDelegate {
         present(DetailsVC, animated: true)
         
     }
-
+    //MARK: Editing Style cell
+    func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle {
+        return .delete
+    }
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        let rslt = result[indexPath.row]
+        if editingStyle == .delete {
+            tableView.beginUpdates()
+            result.remove(at: indexPath.row)
+            CoreDataService.shared.deleteCell(rslt)
+            tableView.deleteRows(at: [indexPath], with: .fade)
+            tableView.endUpdates()
+        }
+    }
 
 }
 //MARK: TableView Delegate

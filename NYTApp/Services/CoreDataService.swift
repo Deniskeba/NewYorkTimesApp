@@ -96,6 +96,25 @@ final class CoreDataService {
             return .failure(.unknown)
         }
     }
+    //MARK: Deleting cells
+    func deleteCell(_ cell: StoredCells) -> Result<Void, CoreDataError>{
+        
+        context.delete(cell)
+        
+        
+        guard self.context.hasChanges else {
+            return .failure(.unknown)
+        }
+        
+        do {
+            try self.context.save()
+            return .success(())
+        } catch {
+            return .failure(.unknown)
+        }
+
+    }
+    
     //MARK: GET A CELL
     func fetchCell(predicate: NSPredicate? = nil) -> Result<[StoredCells], CoreDataError> {
         let fetchRequest = StoredCells.fetchRequest()
